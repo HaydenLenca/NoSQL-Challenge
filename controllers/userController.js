@@ -1,8 +1,8 @@
-const { User, Thought } = require("../models");
+const { user, thoughts } = require("../models");
 
 const userController = {
   getAllUser(req, res) {
-    User.find({})
+    user.find({})
       .populate({
         path: "friends",
         select: "-__v",
@@ -17,7 +17,7 @@ const userController = {
   },
 
   getUserById({ params }, res) {
-    User.findOne({ _id: params.id })
+    user.findOne({ _id: params.id })
       .populate({
         path: "thoughts",
         select: "-__v",
@@ -42,13 +42,13 @@ const userController = {
   },
 
   createUser({ body }, res) {
-    User.create(body)
+    user.create(body)
       .then((dbUserData) => res.json(dbUserData))
       .catch((err) => res.json(err));
   },
 
   updateUser({ params, body }, res) {
-    User.findOneAndUpdate({ _id: params.id }, body, {
+    user.findOneAndUpdate({ _id: params.id }, body, {
       new: true,
       runValidators: true,
     })
@@ -63,12 +63,12 @@ const userController = {
   },
 
   deleteUser({ params }, res) {
-    User.findOneAndDelete({ _id: params.id })
+    user.findOneAndDelete({ _id: params.id })
       .then((dbUserData) => {
         if (!dbUserData) {
           return res.status(404).json({ message: "No user with this id!" });
         }
-        return Thought.deleteMany({ _id: { $in: dbUserData.thoughts } });
+        return thoughts.deleteMany({ _id: { $in: dbUserData.thought } });
       })
       .then(() => {
         res.json({ message: "User and associated thoughts deleted!" });
@@ -77,7 +77,7 @@ const userController = {
   },
 
   addFriend({ params }, res) {
-    User.findOneAndUpdate(
+    user.findOneAndUpdate(
       { _id: params.userId },
       { $addToSet: { friends: params.friendId } },
       { new: true, runValidators: true }
@@ -93,7 +93,7 @@ const userController = {
   },
 
   removeFriend({ params }, res) {
-    User.findOneAndUpdate(
+    user.findOneAndUpdate(
       { _id: params.userId },
       { $pull: { friends: params.friendId } },
       { new: true }
